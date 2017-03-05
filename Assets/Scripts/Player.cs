@@ -1,6 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+public class Layers {
+    public static LayerMask Ground;
+    public static LayerMask Unthrough;
+
+    static Layers() {
+        Unthrough = LayerMask.GetMask("Ground", "Wall");
+        Ground = LayerMask.GetMask("Ground");
+    }
+}
+
 public class Player : MonoBehaviour {
 
     public Rigidbody2D rb;
@@ -18,6 +28,7 @@ public class Player : MonoBehaviour {
     }
 
     State state;
+    float lastJumpAt;
 	
 	// Update is called once per frame
 	void Update () {
@@ -37,18 +48,23 @@ public class Player : MonoBehaviour {
                 if (!rb.IsTouchingLayers())
                 {
                     anim.SetBool("Fall", true);
+                    anim.SetTrigger("IsJump");
                     state = State.Jumping;
                 }
                 if (Input.GetKey(KeyCode.UpArrow))
                 {
-                    rb.AddForce(new Vector2(0, 300));
+                if (lastJumpAt < Time.time - 0.5f)
+                {
+                    lastJumpAt = Time.time;
+                    rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y + 8);
                     anim.SetTrigger("IsJump");
                     anim.SetBool("Fall", true);
                     state = State.Jumping;
                 }
+                }
                 break;
             case State.Jumping:
-                if( rb.IsTouchingLayers() )
+                if( rb.IsTouchingLayers(Layers.Ground) )
                 {
                     anim.SetBool("Fall", false);
                     state = State.Ground;
